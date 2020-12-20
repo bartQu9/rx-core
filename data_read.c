@@ -6,11 +6,12 @@
 #include <string.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 
 wav_handler *open_wav(char *file_path) {
     FILE *file;
-    if ((file = fopen(file_path, "r")) == NULL){
+    if ((file = fopen(file_path, "r")) == NULL) {
         perror("open_wav(): failed to open wav file");
         return NULL;
     }
@@ -57,4 +58,28 @@ wav_handler *open_wav(char *file_path) {
 
 }
 
-//uint8_t wav_read_samples(uint32_t n, )
+//uint32_t wav_read_samples(i, q, uint32_t n, )
+//return idx
+
+struct iq_buff *init_buff(uint32_t buff_size) {
+    struct iq_buff *b = malloc(sizeof(struct iq_buff));
+    struct IQ *iq = malloc(buff_size *sizeof(struct IQ));
+    b->samples = iq;
+    b->len = buff_size;
+    b->read_offset = 0;
+    b->write_offset = 0;
+    b->idx = 1;
+    return b;
+}
+
+uint32_t
+readtobuff(struct iq_buff *buff, uint32_t n, uint32_t (*fhandler)(struct IQ *samples, uint32_t n)) {
+
+//    if (buff->write_offset + n > buff->len){
+//
+//    }
+
+
+
+
+}

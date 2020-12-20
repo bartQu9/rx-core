@@ -4,26 +4,22 @@
 
 #ifndef RX_BASE_DATA_READ_H
 #define RX_BASE_DATA_READ_H
+#define iq_prec double
 #include <stdint.h>
 #include <stdio.h>
 
-struct iq_chunk{
-    double *I;      // I part of IQ signal
-    double *Q;      // Q part of IQ signal
-    uint32_t size;  // length of I
-};
-
-struct iq_frame{
-    struct iq_chunk *this;
-    struct iq_chunk *next;
-    struct iq_chunk *prev;
-
-    uint32_t idx;  // index of first IQ sample stored in "this"
+struct IQ{
+    iq_prec I;
+    iq_prec Q;
 };
 
 struct iq_buff{
-    struct iq_frame *last;
-    uint32_t buff_size;     // samples kept in memory
+    struct IQ *samples;
+    uint32_t len;           // samples kept in memory
+    uint32_t backlog;       // old samples (already read)
+    uint32_t read_offset;   // position in iq_prec[]
+    uint32_t write_offset;
+    uint32_t idx;           // sample index at offset (counted from 1)
 };
 
 struct wav_riff_header{
