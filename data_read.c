@@ -59,27 +59,52 @@ wav_handler *open_wav(char *file_path) {
 }
 
 //uint32_t wav_read_samples(i, q, uint32_t n, )
-//return idx
+//return written count
 
 struct iq_buff *init_buff(uint32_t buff_size) {
     struct iq_buff *b = malloc(sizeof(struct iq_buff));
-    struct IQ *iq = malloc(buff_size *sizeof(struct IQ));
+    struct IQ *iq = malloc(buff_size * sizeof(struct IQ));
     b->samples = iq;
     b->len = buff_size;
     b->read_offset = 0;
     b->write_offset = 0;
-    b->idx = 1;
     return b;
 }
 
 uint32_t
 readtobuff(struct iq_buff *buff, uint32_t n, uint32_t (*fhandler)(struct IQ *samples, uint32_t n)) {
+    // can read up to buffsize-1 samples!
+    // return number of written samples
 
-//    if (buff->write_offset + n > buff->len){
-//
-//    }
+    if (buff->write_offset + n > buff->len - 1) {
+        //exceeded array - make tmp array and copy parted
+        struct IQ *tmp = malloc(n * sizeof(struct IQ));
+        uint32_t written = fhandler(tmp, n);
+        uint32_t end_write_offs = buff->write_offset + written % buff->len;
+        if (end_write_offs < buff->write_offset) {
+            memcpy(buff->samples + buff->write_offset, tmp,
+                   (buff->len - buff->write_offset - 1)); //to the end of buff array
+            memcpy(buff->samples, tmp + (buff->len - buff->write_offset - 1),
+                   end_write_offs + 1); //beggining of buff array
 
+            buff->write_offset = end_write_offs;
 
+            free(tmp);
+            return written;
+        }
+        //fhandler read less samples than expected
+        //sufficiently few to store in original buff
+        memcpy(buff->samples+buff->write_offset, tmp, written);
+        buff->write_offset = end_write_offs;
 
+        free(tmp);
+        return written;
+
+    }
+
+    // want to fetch few enough to copy directly to orig buff
+    uint32_t written = fhandler(buff->samples+buff->write_offset, n);
+    buff->write_offset += written;
+    return written;
 
 }

@@ -19,7 +19,6 @@ struct iq_buff{
     uint32_t backlog;       // old samples (already read)
     uint32_t read_offset;   // position in iq_prec[]
     uint32_t write_offset;
-    uint32_t idx;           // sample index at offset (counted from 1)
 };
 
 struct wav_riff_header{
