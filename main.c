@@ -1,11 +1,20 @@
 #include <stdio.h>
 #include <unistd.h>
+#include <stdlib.h>
 #include "globopts.h"
 #include "data_read.h"
 
 void test(char *arg){
 
     wav_handler *h = open_wav(arg);
+    int n = 10000;
+    size_t i = 0;
+    size_t readn;
+    iq_prec complex iq[n];
+    while ((readn = wav_read_samples(iq, h, n)) == n){
+       // printf("%ld: I=%.6E Q=%.12E\n", i, creal(iq[0]), cimag(iq[0]));
+        i++;
+    }
 
 }
 

@@ -8,11 +8,7 @@
 
 #include <stdint.h>
 #include <stdio.h>
-
-struct IQ {
-    iq_prec I;
-    iq_prec Q;
-};
+#include <complex.h>
 
 struct wav_riff_header {
     uint32_t chunk_id;      // 'RIFF'
@@ -48,8 +44,7 @@ typedef struct wav_handler {
 
 wav_handler *open_wav(char *file_path);
 
-uint32_t
-readtobuff(struct iq_buff *buff, uint32_t n, uint32_t (*fhandler)(struct IQ *samples, uint32_t n));
+size_t wav_read_samples(iq_prec complex *dst, wav_handler *src, size_t n);
 
 
 #endif //RX_BASE_DATA_READ_H

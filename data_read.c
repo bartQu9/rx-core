@@ -7,15 +7,29 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <complex.h>
 
-void u8bit_to_iq_prec(const uint8_t *buff, iq_prec *dst, size_t n) {
+void u8bit_norm(const uint8_t *buff, iq_prec *dst, size_t n) {
     // converts 8-bit (0-255) samples to double <-1;1>
     // buff - tab of uint8_t
     size_t i;
     for (i = 0; i < n; i++) {
-        dst[i] = (iq_prec) (buff[i] & 0x7F) / 128;
-        (buff[i] & 0x80) || (dst[i] *= -1);          // if <128 then IQ negative
+        dst[i] = (iq_prec) (buff[i] - 128) / 128;
     }
+}
+
+void norm_mkcomplex(iq_prec *norm, iq_prec complex *z, uint8_t channels, size_t n) {
+    // n - pairs of IQ
+    if (channels == 2) {
+        for (int i = 0; i < n; i++) {
+            z[i] = norm[2 * i] + norm[2 * i + 1] * I;
+        }
+    }else if(channels == 1){
+        for (int i = 0; i < n; i++) {
+            z[i] = norm[i] + 0 * I;
+        }
+    }
+
 }
 
 wav_handler *open_wav(char *file_path) {
@@ -67,8 +81,8 @@ wav_handler *open_wav(char *file_path) {
 
 }
 
-size_t wav_read_samples(struct IQ *dst, wav_handler *src, size_t n) {
-    //read raw samples
+size_t wav_read_samples(iq_prec complex *dst, wav_handler *src, size_t n) {
+    // read n (I,Q) samples
     // return: number of items read; when return < n further calls won't return any value
     // n - number of IQ samples to read
     size_t nread, iq_size;
@@ -89,12 +103,19 @@ size_t wav_read_samples(struct IQ *dst, wav_handler *src, size_t n) {
     }
 
     //convert samples to iq_prec
+    iq_prec *norm_buff = malloc(n *sizeof(iq_prec) * src->fmt_subchunk.num_channels);
     switch (src->fmt_subchunk.bits_per_sample) {
         case 8:
-        u8bit_to_iq_prec(buff, (iq_prec *) dst, n*2);
-
+            u8bit_norm(buff, norm_buff, n * src->fmt_subchunk.num_channels);
+            norm_mkcomplex(norm_buff, dst, src->fmt_subchunk.num_channels, n);
+            break;
+        default:
+            printf("wav_read_samples(): No available handler for given data type\n");
+            break;
     }
 
+    free(buff);
+    free(norm_buff);
     return nread;
 }
 
