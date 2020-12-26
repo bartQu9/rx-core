@@ -8,6 +8,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+void u8bit_to_iq_prec(const uint8_t *buff, iq_prec *dst, size_t n) {
+    // converts 8-bit (0-255) samples to double <-1;1>
+    // buff - tab of uint8_t
+    size_t i;
+    for (i = 0; i < n; i++) {
+        dst[i] = (iq_prec) (buff[i] & 0x7F) / 128;
+        (buff[i] & 0x80) || (dst[i] *= -1);          // if <128 then IQ negative
+    }
+}
 
 wav_handler *open_wav(char *file_path) {
     FILE *file;
@@ -58,53 +67,35 @@ wav_handler *open_wav(char *file_path) {
 
 }
 
-//uint32_t wav_read_samples(i, q, uint32_t n, )
-//return written count
+size_t wav_read_samples(struct IQ *dst, wav_handler *src, size_t n) {
+    //read raw samples
+    // return: number of items read; when return < n further calls won't return any value
+    // n - number of IQ samples to read
+    size_t nread, iq_size;
+    iq_size = src->fmt_subchunk.bits_per_sample * src->fmt_subchunk.num_channels / 8;   // size of one IQ
+    uint8_t *buff = malloc(n * iq_size);
+    nread = fread(buff, iq_size, n, src->file_handler);
 
-struct iq_buff *init_buff(uint32_t buff_size) {
-    struct iq_buff *b = malloc(sizeof(struct iq_buff));
-    struct IQ *iq = malloc(buff_size * sizeof(struct IQ));
-    b->samples = iq;
-    b->len = buff_size;
-    b->read_offset = 0;
-    b->write_offset = 0;
-    return b;
-}
-
-uint32_t
-readtobuff(struct iq_buff *buff, uint32_t n, uint32_t (*fhandler)(struct IQ *samples, uint32_t n)) {
-    // can read up to buffsize-1 samples!
-    // return number of written samples
-
-    if (buff->write_offset + n > buff->len - 1) {
-        //exceeded array - make tmp array and copy parted
-        struct IQ *tmp = malloc(n * sizeof(struct IQ));
-        uint32_t written = fhandler(tmp, n);
-        uint32_t end_write_offs = buff->write_offset + written % buff->len;
-        if (end_write_offs < buff->write_offset) {
-            memcpy(buff->samples + buff->write_offset, tmp,
-                   (buff->len - buff->write_offset - 1)); //to the end of buff array
-            memcpy(buff->samples, tmp + (buff->len - buff->write_offset - 1),
-                   end_write_offs + 1); //beggining of buff array
-
-            buff->write_offset = end_write_offs;
-
-            free(tmp);
-            return written;
+    if (nread != n) {
+        // EOF or err
+        if (feof(src->file_handler)) {
+            printf("wav_read_raw_samples(): reached end of file\n");
+            fclose(src->file_handler);
         }
-        //fhandler read less samples than expected
-        //sufficiently few to store in original buff
-        memcpy(buff->samples+buff->write_offset, tmp, written);
-        buff->write_offset = end_write_offs;
+        if (ferror(src->file_handler)) {
+            perror("wav_read_raw_samples():");
+            fclose(src->file_handler);
+        }
+    }
 
-        free(tmp);
-        return written;
+    //convert samples to iq_prec
+    switch (src->fmt_subchunk.bits_per_sample) {
+        case 8:
+        u8bit_to_iq_prec(buff, (double *) dst, n*2);
 
     }
 
-    // want to fetch few enough to copy directly to orig buff
-    uint32_t written = fhandler(buff->samples+buff->write_offset, n);
-    buff->write_offset += written;
-    return written;
-
+    return nread;
 }
+
+
