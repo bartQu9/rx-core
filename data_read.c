@@ -91,7 +91,7 @@ size_t wav_read_samples(struct IQ *dst, wav_handler *src, size_t n) {
     //convert samples to iq_prec
     switch (src->fmt_subchunk.bits_per_sample) {
         case 8:
-        u8bit_to_iq_prec(buff, (double *) dst, n*2);
+        u8bit_to_iq_prec(buff, (iq_prec *) dst, n*2);
 
     }
 
