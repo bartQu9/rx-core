@@ -4,11 +4,12 @@
 
 #ifndef RX_BASE_DATA_READ_H
 #define RX_BASE_DATA_READ_H
-#define iq_prec double
+
 
 #include <stdint.h>
 #include <stdio.h>
 #include <complex.h>
+#include "globopts.h"
 
 struct wav_riff_header {
     uint32_t chunk_id;      // 'RIFF'

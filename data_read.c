@@ -3,6 +3,7 @@
 //
 #include "data_read.h"
 #include "lutils.h"
+#include "globopts.h"
 #include <string.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -24,7 +25,7 @@ void norm_mkcomplex(iq_prec *norm, iq_prec complex *z, uint8_t channels, size_t 
         for (int i = 0; i < n; i++) {
             z[i] = norm[2 * i] + norm[2 * i + 1] * I;
         }
-    }else if(channels == 1){
+    } else if (channels == 1) {
         for (int i = 0; i < n; i++) {
             z[i] = norm[i] + 0 * I;
         }
@@ -103,7 +104,7 @@ size_t wav_read_samples(iq_prec complex *dst, wav_handler *src, size_t n) {
     }
 
     //convert samples to iq_prec
-    iq_prec *norm_buff = malloc(n *sizeof(iq_prec) * src->fmt_subchunk.num_channels);
+    iq_prec *norm_buff = malloc(n * sizeof(iq_prec) * src->fmt_subchunk.num_channels);
     switch (src->fmt_subchunk.bits_per_sample) {
         case 8:
             u8bit_norm(buff, norm_buff, n * src->fmt_subchunk.num_channels);
@@ -117,6 +118,33 @@ size_t wav_read_samples(iq_prec complex *dst, wav_handler *src, size_t n) {
     free(buff);
     free(norm_buff);
     return nread;
+}
+
+iq_prec complex *wav_getn(struct RXopts *opts) {
+    // get n IQ samples by returning ptr to IQ array
+    // further calls MUST NOT get more samples than in initial call of this function
+    static iq_prec complex *samples;
+    size_t nread;
+
+    if (!samples) {
+        //first call, create buff
+        samples = malloc(
+                opts->chunk_size * ((wav_handler *) (opts->src_handler))->fmt_subchunk.num_channels *
+                sizeof(iq_prec complex));
+    }
+
+    nread = wav_read_samples(samples, ((wav_handler *) (opts->src_handler)), opts->chunk_size);
+
+    if (nread < opts->chunk_size){
+        //read less than chunk, set EOF and fulfill rest of the chunk with zeroes
+        opts->eof = 1;
+        iq_prec complex zero = 0 + 0 * I;
+        for(int i=nread; i < opts->chunk_size; i++){
+            samples[i] = zero;
+        }
+    }
+
+    return samples;
 }
 
 
