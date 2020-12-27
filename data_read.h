@@ -47,5 +47,6 @@ wav_handler *open_wav(char *file_path);
 
 size_t wav_read_samples(iq_prec complex *dst, wav_handler *src, size_t n);
 
+iq_prec complex *wav_get_chunk(struct RXopts *opts);
 
 #endif //RX_BASE_DATA_READ_H

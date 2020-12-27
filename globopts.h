@@ -20,7 +20,7 @@ struct RXopts{
     uint8_t eof;            // 1 if EOF
 
     void *src_handler;
-    iq_prec complex* (*src_getn)(size_t n, void *src_handler);
+    iq_prec complex* (*src_get_chunk)(size_t n, void *src_handler);
 
 };
 

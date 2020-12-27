@@ -120,7 +120,7 @@ size_t wav_read_samples(iq_prec complex *dst, wav_handler *src, size_t n) {
     return nread;
 }
 
-iq_prec complex *wav_getn(struct RXopts *opts) {
+iq_prec complex *wav_get_chunk(struct RXopts *opts) {
     // get n IQ samples by returning ptr to IQ array
     // further calls MUST NOT get more samples than in initial call of this function
     static iq_prec complex *samples;
