@@ -10,6 +10,7 @@
 #include <complex.h>
 
 #define iq_prec double
+#define STAGES_N_MAX 32
 
 extern uint8_t flag_verbose;
 
