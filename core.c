@@ -34,3 +34,4 @@ struct RXopts *init_source(enum resource_type src_type, void *res_spec_info, siz
 
     return &src_opts;
 }
+

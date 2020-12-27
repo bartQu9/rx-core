@@ -1,26 +1,27 @@
 #include <stdio.h>
 #include <unistd.h>
-#include <stdlib.h>
 #include "globopts.h"
+#include "core.h"
 #include "data_read.h"
 
-void test(char *arg){
+uint8_t flag_verbose;
 
-    wav_handler *h = open_wav(arg);
-    int n = 10000;
-    size_t i = 0;
-    size_t readn;
-    iq_prec complex iq[n];
-    while ((readn = wav_read_samples(iq, h, n)) == n){
-       // printf("%ld: I=%.6E Q=%.12E\n", i, creal(iq[0]), cimag(iq[0]));
-        i++;
+void test(char *arg) {
+
+    struct RXopts *opts = init_source(wav_file, arg, 1000);
+    iq_prec complex *chunk;
+    size_t idx = 1;
+    while (!opts->eof) {
+        chunk = wav_get_chunk(opts);
+        for (int i = 0; i < opts->chunk_size; i++, idx++) {
+            //printf("%ld:  I=%le  Q=%le\n", idx, creal(chunk[i]), cimag(chunk[i]));
+        }
     }
-
 }
 
 int main(int argc, char **argv) {
     int c;
-    while(( c = getopt(argc, argv, "hvt:")) != -1){
+    while ((c = getopt(argc, argv, "hvt:")) != -1) {
         switch (c) {
             case 'h':
                 printf("Base RX functionality\n"

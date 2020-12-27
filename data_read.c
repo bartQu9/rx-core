@@ -3,7 +3,6 @@
 //
 #include "data_read.h"
 #include "lutils.h"
-#include "globopts.h"
 #include <string.h>
 #include <stdint.h>
 #include <stdio.h>

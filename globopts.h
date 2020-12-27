@@ -11,7 +11,7 @@
 
 #define iq_prec double
 
-uint8_t flag_verbose;
+extern uint8_t flag_verbose;
 
 enum resource_type{
     wav_file = 1

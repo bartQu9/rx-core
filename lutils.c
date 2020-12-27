@@ -4,7 +4,6 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <string.h>
 
 void err_exit(uint8_t status, char *status_string){
     dprintf(2, status_string);
