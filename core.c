@@ -35,3 +35,13 @@ struct RXopts *init_source(enum resource_type src_type, void *res_spec_info, siz
     return &src_opts;
 }
 
+
+void chain_add_stage(struct stage *s, struct chain *c){
+    for(int i = 0; i<STAGES_N_MAX; i++){
+        if(c->stages[i] == NULL){
+            c->stages[i] = s;
+            return;
+        }
+    }
+}
+
